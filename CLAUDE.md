@@ -144,6 +144,36 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 부드러운 전환 효과와 애니메이션
 - 명확한 시각적 피드백과 에러 메시지
 
+## 빌드 및 실행
+
+### 개발 모드
+```bash
+npm run dev
+```
+
+### 릴리즈 빌드 (macOS 26 Tahoe)
+
+macOS 26에서는 ad-hoc 서명으로 빌드해야 정상 실행됩니다.
+
+```bash
+# ad-hoc 서명으로 빌드 (Apple 개발자 인증서 사용 안함)
+CSC_IDENTITY_AUTO_DISCOVERY=false npm run electron:build
+```
+
+빌드 결과물:
+- `release/mac-arm64/PhotoSlide.app`
+- `release/PhotoSlide-1.0.0-arm64.dmg`
+- `release/PhotoSlide-1.0.0-arm64-mac.zip`
+
+### macOS 26에서 실행 방법
+
+1. Finder에서 `release/mac-arm64/PhotoSlide.app` 찾기
+2. **Control + 클릭** (또는 우클릭) → **열기** 선택
+3. 경고창에서 **열기** 클릭
+4. 맥북 비밀번호 입력
+
+**주의**: `open` 명령어로 실행하면 앱이 자동 삭제될 수 있음. 반드시 Finder에서 Control + 클릭으로 실행할 것.
+
 ## 개발 단계 (참고)
 1. **Phase 1**: Electron 프로젝트 생성, React 설정, Google OAuth
 2. **Phase 2**: Google Photos API 연동, 앨범 목록, 기본 슬라이드쇼

@@ -48,6 +48,7 @@ const slideshowImageCache = new Map<string, string>()
 function SlideImage({ item, className, onVideoEnd }: { item: MediaItem; className?: string; onVideoEnd?: () => void }) {
   const [mediaSrc, setMediaSrc] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [fitClass, setFitClass] = useState<string>(styles.imageFitWidth)
   const isVideo = item.mimeType?.startsWith('video/')
 
   useEffect(() => {
@@ -93,6 +94,22 @@ function SlideImage({ item, className, onVideoEnd }: { item: MediaItem; classNam
     loadMedia()
   }, [item.id, item.baseUrl, isVideo])
 
+  // 미디어 로드 후 비율 계산
+  const handleMediaLoad = (mediaWidth: number, mediaHeight: number) => {
+    const containerWidth = window.innerWidth
+    const containerHeight = window.innerHeight
+    const containerRatio = containerWidth / containerHeight
+    const mediaRatio = mediaWidth / mediaHeight
+
+    // 컨테이너 비율 > 미디어 비율: 높이 100%, 너비 auto
+    // 컨테이너 비율 < 미디어 비율: 너비 100%, 높이 auto
+    if (containerRatio > mediaRatio) {
+      setFitClass(styles.imageFitHeight)
+    } else {
+      setFitClass(styles.imageFitWidth)
+    }
+  }
+
   if (isLoading || !mediaSrc) {
     return <div className={styles.imageLoading}><div className={styles.spinner}></div></div>
   }
@@ -101,19 +118,31 @@ function SlideImage({ item, className, onVideoEnd }: { item: MediaItem; classNam
     return (
       <video
         src={mediaSrc}
-        className={className}
+        className={`${className} ${fitClass}`}
         autoPlay
         muted
         playsInline
         onEnded={onVideoEnd}
+        onLoadedMetadata={(e) => {
+          const video = e.currentTarget
+          handleMediaLoad(video.videoWidth, video.videoHeight)
+        }}
         onError={(e) => console.error('Video error:', e.currentTarget.error)}
-        onLoadStart={() => console.log('Video load started')}
-        onCanPlay={() => console.log('Video can play')}
       />
     )
   }
 
-  return <img src={mediaSrc} alt={item.filename} className={className} />
+  return (
+    <img
+      src={mediaSrc}
+      alt={item.filename}
+      className={`${className} ${fitClass}`}
+      onLoad={(e) => {
+        const img = e.currentTarget
+        handleMediaLoad(img.naturalWidth, img.naturalHeight)
+      }}
+    />
+  )
 }
 
 function Slideshow() {
