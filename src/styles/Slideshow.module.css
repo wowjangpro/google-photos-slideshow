@@ -1,0 +1,273 @@
+.container {
+  height: 100vh;
+  background: #000;
+  position: relative;
+  overflow: hidden;
+  cursor: none;
+}
+
+.container:hover {
+  cursor: default;
+}
+
+.loading,
+.error {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: white;
+}
+
+.imageLoading {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error button {
+  padding: 12px 24px;
+  background: white;
+  color: #000;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+}
+
+.imageWrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.imageWrapper.previous {
+  z-index: 1;
+}
+
+.image {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+video.image {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* Fade 효과 */
+.fadeEnter {
+  animation: fadeIn 0.5s ease forwards;
+  z-index: 2;
+}
+
+.fadeExit {
+  animation: fadeOut 0.5s ease forwards;
+  z-index: 1;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Slide 효과 */
+.slideEnter {
+  animation: slideIn 0.5s ease forwards;
+  z-index: 2;
+}
+
+.slideExit {
+  animation: slideOut 0.5s ease forwards;
+  z-index: 1;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+/* Zoom 효과 */
+.zoomEnter {
+  animation: zoomIn 0.5s ease forwards;
+  z-index: 2;
+}
+
+.zoomExit {
+  animation: zoomOut 0.5s ease forwards;
+  z-index: 1;
+}
+
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale(1.2);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes zoomOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+.controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all var(--transition-normal);
+  pointer-events: none;
+  z-index: 100;
+}
+
+.controls.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.clockOverlay {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  color: white;
+  font-size: 32px;
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+  z-index: 50;
+  transform: none !important;
+}
+
+.dateOverlay {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%) !important;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  color: white;
+  font-size: 15px;
+  font-weight: 500;
+  z-index: 50;
+}
+
+.dateOverlay svg {
+  opacity: 0.9;
+}
+
+.progress {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.buttons button {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  backdrop-filter: blur(10px);
+}
+
+.buttons button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.buttons button:active {
+  transform: scale(0.95);
+}
