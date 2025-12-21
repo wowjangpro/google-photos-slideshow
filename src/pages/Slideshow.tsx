@@ -25,6 +25,8 @@ const BASE_URL_TTL = 50 * 60 * 1000
 const PRELOAD_COUNT = 3
 // 메모리에 유지할 최대 이미지 수
 const MAX_CACHED_IMAGES = 10
+// 미디어 로딩 타임아웃 (10초)
+const LOAD_TIMEOUT = 10000
 
 // 날짜 포맷 함수
 const formatDate = (dateString: string) => {
@@ -45,13 +47,16 @@ const formatDate = (dateString: string) => {
 const slideshowImageCache = new Map<string, string>()
 
 // 슬라이드 미디어 컴포넌트 (이미지/동영상 프록시를 통해 로드)
-function SlideImage({ item, className, onVideoEnd }: { item: MediaItem; className?: string; onVideoEnd?: () => void }) {
+function SlideImage({ item, className, onVideoEnd, onLoadTimeout }: { item: MediaItem; className?: string; onVideoEnd?: () => void; onLoadTimeout?: () => void }) {
   const [mediaSrc, setMediaSrc] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [fitClass, setFitClass] = useState<string>(styles.imageFitWidth)
   const isVideo = item.mimeType?.startsWith('video/')
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout | null = null
+    let isCancelled = false
+
     const loadMedia = async () => {
       setIsLoading(true)
       const cacheKey = `${item.id}-full`
@@ -62,10 +67,20 @@ function SlideImage({ item, className, onVideoEnd }: { item: MediaItem; classNam
         return
       }
 
+      // 10초 타임아웃 설정
+      timeoutId = setTimeout(() => {
+        if (!isCancelled && isLoading) {
+          console.warn(`미디어 로딩 타임아웃 (10초 초과): ${item.filename}`)
+          setIsLoading(false)
+          onLoadTimeout?.()
+        }
+      }, LOAD_TIMEOUT)
+
       try {
         if (isVideo) {
           // 동영상: 로컬 파일로 다운로드
           const result = await window.electronAPI.photos.getVideo(item.baseUrl, item.id)
+          if (isCancelled) return
           if (result.success && result.filePath) {
             // video-cache:// custom protocol 사용
             const encodedPath = encodeURIComponent(result.filePath)
@@ -75,24 +90,39 @@ function SlideImage({ item, className, onVideoEnd }: { item: MediaItem; classNam
             setMediaSrc(videoUrl)
           } else {
             console.error('Failed to get video:', result.error)
+            onLoadTimeout?.()
           }
         } else {
           // 이미지: base64 data URL (디스크 캐싱 포함)
           const result = await window.electronAPI.photos.getImage(item.baseUrl, 'w1920-h1080', `slide-${item.id}`)
+          if (isCancelled) return
           if (result.success && result.dataUrl) {
             slideshowImageCache.set(cacheKey, result.dataUrl)
             setMediaSrc(result.dataUrl)
+          } else {
+            onLoadTimeout?.()
           }
         }
       } catch (err) {
         console.error('Failed to load slideshow media:', err)
+        if (!isCancelled) {
+          onLoadTimeout?.()
+        }
       } finally {
-        setIsLoading(false)
+        if (!isCancelled) {
+          setIsLoading(false)
+          if (timeoutId) clearTimeout(timeoutId)
+        }
       }
     }
 
     loadMedia()
-  }, [item.id, item.baseUrl, isVideo])
+
+    return () => {
+      isCancelled = true
+      if (timeoutId) clearTimeout(timeoutId)
+    }
+  }, [item.id, item.baseUrl, isVideo, onLoadTimeout])
 
   // 미디어 로드 후 비율 계산
   const handleMediaLoad = (mediaWidth: number, mediaHeight: number) => {
@@ -259,6 +289,13 @@ function Slideshow() {
       transitionTo((currentIndex + 1) % mediaItems.length)
     }
   }, [isPlaying, mediaItems.length, currentIndex, transitionTo])
+
+  // 로딩 타임아웃 시 다음 슬라이드로 이동
+  const handleLoadTimeout = useCallback(() => {
+    if (mediaItems.length > 0) {
+      transitionTo((currentIndex + 1) % mediaItems.length)
+    }
+  }, [mediaItems.length, currentIndex, transitionTo])
 
   // 키보드 이벤트
   useEffect(() => {
@@ -533,7 +570,7 @@ function Slideshow() {
       {/* 현재 이미지 */}
       {currentMedia && (
         <div className={`${styles.imageWrapper} ${getTransitionClass(true)}`} key={currentMedia.id}>
-          <SlideImage item={currentMedia} className={styles.image} onVideoEnd={handleVideoEnd} />
+          <SlideImage item={currentMedia} className={styles.image} onVideoEnd={handleVideoEnd} onLoadTimeout={handleLoadTimeout} />
         </div>
       )}
 
