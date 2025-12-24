@@ -106,17 +106,18 @@ function createWindow() {
 
 function createTray() {
   // 트레이 아이콘 경로 (개발/배포 환경에 따라 다름)
+  // macOS Template 이미지 사용 (파일명에 Template 포함)
   let iconPath: string
   if (isDev) {
-    iconPath = path.join(__dirname, '../public/tray-icon.png')
+    iconPath = path.join(__dirname, '../public/tray-iconTemplate.png')
   } else {
     // 패키징된 앱에서는 extraResources에서 찾음
-    iconPath = path.join(process.resourcesPath, 'tray-icon.png')
+    iconPath = path.join(process.resourcesPath, 'tray-iconTemplate.png')
   }
 
   // 파일이 없으면 대체 경로 시도
   if (!require('fs').existsSync(iconPath)) {
-    iconPath = path.join(__dirname, '../dist/tray-icon.png')
+    iconPath = path.join(__dirname, '../dist/tray-iconTemplate.png')
   }
 
   try {
